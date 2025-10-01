@@ -1,6 +1,6 @@
 import pytest
 from flask.testing import FlaskClient
-from ej2a4 import create_app, TEMPLATE
+from ej2b4 import create_app, TEMPLATE
 from jinja2 import Template
 
 @pytest.fixture
