@@ -15,16 +15,20 @@ Nota: Si deseas cambiar el idioma del ejercicio, edita el archivo de test corres
 
 from flask import Flask
 
+
 def create_app():
     """
     Crea y configura la aplicación Flask
     """
     app = Flask(__name__)
 
-    # Aquí debes implementar el endpoint solicitado
+    @app.route("/", methods=["GET"])
+    def home():
+        return "¡Hola mundo!"
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)

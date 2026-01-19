@@ -14,16 +14,28 @@ Nota: Si deseas cambiar el idioma del ejercicio, edita el archivo de prueba corr
 
 from flask import Flask
 
+
 def create_app():
     """
     Crea y configura la aplicación Flask
     """
     app = Flask(__name__)
 
-    # Aquí debes implementar los endpoints solicitados
+    @app.route("/hello", methods=["GET"])
+    def hello():
+        return "¡Hola mundo!"
+
+    @app.route("/goodbye", methods=["GET"])
+    def goodbye():
+        return "¡Adiós mundo!"
+
+    @app.route("/greet/<nombre>", methods=["GET"])
+    def greet(nombre):
+        return f"¡Hola, {nombre}!"
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)

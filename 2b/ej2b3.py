@@ -23,13 +23,14 @@ Estos métodos son fundamentales para construir APIs web interactivas que puedan
 
 from flask import Flask, jsonify, request
 
+
 def create_app():
     """
     Crea y configura la aplicación Flask
     """
     app = Flask(__name__)
 
-    @app.route('/search', methods=['GET'])
+    @app.route("/search", methods=["GET"])
     def search():
         """
         Maneja parámetros de consulta (query parameters) en la URL
@@ -39,9 +40,10 @@ def create_app():
         """
         # Implementa este endpoint para obtener los parámetros de consulta
         # y devolverlos en formato JSON
-        pass
+        params = request.args.to_dict()
+        return jsonify(params)
 
-    @app.route('/form', methods=['POST'])
+    @app.route("/form", methods=["POST"])
     def form_handler():
         """
         Maneja datos de formulario enviados mediante POST
@@ -50,9 +52,10 @@ def create_app():
         """
         # Implementa este endpoint para obtener los datos del formulario
         # y devolverlos en formato JSON
-        pass
+        form_data = request.form.to_dict()
+        return jsonify(form_data)
 
-    @app.route('/json', methods=['POST'])
+    @app.route("/json", methods=["POST"])
     def json_handler():
         """
         Maneja datos JSON enviados en el cuerpo de la petición
@@ -61,10 +64,12 @@ def create_app():
         """
         # Implementa este endpoint para obtener los datos JSON
         # y devolverlos en formato JSON
-        pass
+        data = request.get_json()
+        return jsonify(data)
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
