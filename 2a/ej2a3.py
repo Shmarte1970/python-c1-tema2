@@ -18,17 +18,18 @@ Ejemplo:
 2. Una solicitud `GET /product/999` debe devolver un mensaje de error con código 404.
 """
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import re
 import xml.etree.ElementTree as ET
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from xml.dom import minidom
 
 # Lista de productos predefinida
 products = [
     {"id": 1, "name": "Laptop", "price": 999.99},
     {"id": 2, "name": "Smartphone", "price": 699.99},
-    {"id": 3, "name": "Tablet", "price": 349.99}
+    {"id": 3, "name": "Tablet", "price": 349.99},
 ]
+
 
 def dict_to_xml(tag, d):
     """
@@ -40,13 +41,15 @@ def dict_to_xml(tag, d):
         child.text = str(val)
     return elem
 
+
 def prettify(elem):
     """
     Devuelve una cadena XML formateada bonita
     """
-    rough_string = ET.tostring(elem, 'utf-8')
+    rough_string = ET.tostring(elem, "utf-8")
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ").encode()
+
 
 class ProductAPIHandler(BaseHTTPRequestHandler):
     """
@@ -67,7 +70,46 @@ class ProductAPIHandler(BaseHTTPRequestHandler):
         #    a. Convierte el producto a XML usando dict_to_xml y prettify
         #    b. Devuelve el XML con código 200 y Content-Type application/xml
         # 5. Si el producto no existe, devuelve un mensaje de error XML con código 404
-        pass
+        match = re.match(r"^/product/(\d+)$", self.path)
+
+        if match:
+            product_id = int(match.group(1))
+
+            # Buscar el producto por ID
+            product = next((p for p in products if p["id"] == product_id), None)
+
+            if product:
+                # Producto encontrado
+                product_xml = dict_to_xml("product", product)
+                xml_response = prettify(product_xml)
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/xml")
+                self.end_headers()
+                self.wfile.write(xml_response)
+            else:
+                # Producto no encontrado
+                error_elem = ET.Element("error")
+                error_elem.text = "Producto no encontrado"
+
+                xml_response = prettify(error_elem)
+
+                self.send_response(404)
+                self.send_header("Content-Type", "application/xml")
+                self.end_headers()
+                self.wfile.write(xml_response)
+        else:
+            # Ruta inválida
+            error_elem = ET.Element("error")
+            error_elem.text = "Ruta no válida"
+
+            xml_response = prettify(error_elem)
+
+            self.send_response(404)
+            self.send_header("Content-Type", "application/xml")
+            self.end_headers()
+            self.wfile.write(xml_response)
+
 
 def create_server(host="localhost", port=8000):
     """
@@ -77,6 +119,7 @@ def create_server(host="localhost", port=8000):
     httpd = HTTPServer(server_address, ProductAPIHandler)
     return httpd
 
+
 def run_server(server):
     """
     Inicia el servidor HTTP
@@ -84,6 +127,7 @@ def run_server(server):
     print(f"Servidor iniciado en http://{server.server_name}:{server.server_port}")
     server.serve_forever()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     server = create_server()
     run_server(server)

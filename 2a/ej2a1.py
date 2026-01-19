@@ -13,7 +13,8 @@ Tu tarea es completar la implementación de la clase MyHTTPRequestHandler.
 Nota: Si deseas cambiar el idioma del ejercicio, edita el archivo de test correspondiente (ej2a1_test.py).
 """
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     """
@@ -32,7 +33,14 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         # 1. Verifica la ruta solicitada (self.path)
         # 2. Si la ruta es "/", envía una respuesta 200 con el mensaje "¡Hola mundo!"
         # 3. Si la ruta es cualquier otra, envía una respuesta 404
-        pass
+        if self.path == "/":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.end_headers()
+            self.wfile.write("¡Hola mundo!".encode("utf-8"))
+        else:
+            self.send_response(404)
+            self.end_headers()
 
 
 def create_server(host="localhost", port=8000):
@@ -43,6 +51,7 @@ def create_server(host="localhost", port=8000):
     httpd = HTTPServer(server_address, MyHTTPRequestHandler)
     return httpd
 
+
 def run_server(server):
     """
     Inicia el servidor HTTP
@@ -50,6 +59,7 @@ def run_server(server):
     print(f"Servidor iniciado en http://{server.server_name}:{server.server_port}")
     server.serve_forever()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     server = create_server()
     run_server(server)

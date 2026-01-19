@@ -18,15 +18,15 @@ Ejemplo:
 2. Una solicitud `GET /product/999` debe devolver un mensaje de error con código 404.
 """
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import re
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Lista de productos predefinida
 products = [
     {"id": 1, "name": "Laptop", "price": 999.99},
     {"id": 2, "name": "Smartphone", "price": 699.99},
-    {"id": 3, "name": "Tablet", "price": 349.99}
+    {"id": 3, "name": "Tablet", "price": 349.99},
 ]
 
 
@@ -47,7 +47,35 @@ class ProductAPIHandler(BaseHTTPRequestHandler):
         # 3. Busca el producto en la lista
         # 4. Si el producto existe, devuélvelo en formato JSON con código 200
         # 5. Si el producto no existe, devuelve un mensaje de error con código 404
-        pass
+        match = re.match(r"^/product/(\d+)$", self.path)
+
+        if match:
+            product_id = int(match.group(1))
+
+            # Buscar el producto por ID
+            product = next((p for p in products if p["id"] == product_id), None)
+
+            if product:
+                # Producto encontrado
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(product).encode("utf-8"))
+            else:
+                # Producto no encontrado
+                self.send_response(404)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                error = {"error": "Producto no encontrado"}
+                self.wfile.write(json.dumps(error).encode("utf-8"))
+        else:
+            # Ruta inválida
+            self.send_response(404)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            error = {"error": "Ruta no válida"}
+            self.wfile.write(json.dumps(error).encode("utf-8"))
+
 
 def create_server(host="localhost", port=8000):
     """
@@ -57,6 +85,7 @@ def create_server(host="localhost", port=8000):
     httpd = HTTPServer(server_address, ProductAPIHandler)
     return httpd
 
+
 def run_server(server):
     """
     Inicia el servidor HTTP
@@ -64,6 +93,7 @@ def run_server(server):
     print(f"Servidor iniciado en http://{server.server_name}:{server.server_port}")
     server.serve_forever()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     server = create_server()
     run_server(server)
