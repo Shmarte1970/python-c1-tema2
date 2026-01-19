@@ -21,7 +21,8 @@ Esta estructura refleja cómo se organizan las aplicaciones Flask más grandes y
 separando la lógica en componentes modulares que pueden desarrollarse y mantenerse de manera independiente.
 """
 
-from flask import Flask, Blueprint
+from flask import Blueprint, Flask
+
 
 def create_app():
     """
@@ -30,22 +31,36 @@ def create_app():
     app = Flask(__name__)
 
     # Crea el blueprint 'main'
-    main_blueprint = Blueprint('main', __name__)
+    main_blueprint = Blueprint("main", __name__)
 
     # Define las rutas para el blueprint 'main'
-    # Implementa las rutas '/' y '/about' para el blueprint 'main'
+    @main_blueprint.route("/", methods=["GET"])
+    def home():
+        return "Bienvenida a la API"
+
+    @main_blueprint.route("/about", methods=["GET"])
+    def about():
+        return "Esta es una aplicación de ejemplo con Blueprints"
 
     # Crea el blueprint 'user'
-    user_blueprint = Blueprint('user', __name__)
+    user_blueprint = Blueprint("user", __name__)
 
     # Define las rutas para el blueprint 'user'
-    # Implementa las rutas '/user/profile/<username>' y '/user/list' para el blueprint 'user'
+    @user_blueprint.route("/user/profile/<username>", methods=["GET"])
+    def profile(username):
+        return f"Perfil de usuario: {username}"
+
+    @user_blueprint.route("/user/list", methods=["GET"])
+    def user_list():
+        return "Lista de usuarios: user1, user2, user3"
 
     # Registra los blueprints con un prefijo de URL '/api/v1'
-    # Usa app.register_blueprint() con el parámetro url_prefix
+    app.register_blueprint(main_blueprint, url_prefix="/api/v1")
+    app.register_blueprint(user_blueprint, url_prefix="/api/v1")
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
