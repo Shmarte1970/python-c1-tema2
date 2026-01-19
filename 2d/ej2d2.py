@@ -21,7 +21,8 @@ Esta actividad te enseñará a utilizar la función abort() de Flask para maneja
 situaciones de error comunes en aplicaciones web.
 """
 
-from flask import Flask, request, abort, jsonify
+from flask import Flask, abort, jsonify, request
+
 
 def create_app():
     """
@@ -29,7 +30,7 @@ def create_app():
     """
     app = Flask(__name__)
 
-    @app.route('/resource/<int:resource_id>', methods=['GET'])
+    @app.route("/resource/<resource_id>", methods=["GET"])
     def get_resource(resource_id):
         """
         Devuelve información sobre un recurso según su ID.
@@ -37,10 +38,19 @@ def create_app():
         - Si el ID es <= 0: abort con código 400 (Bad Request)
         - Si el ID es > 100: abort con código 404 (Not Found)
         """
-        # Implementa este endpoint utilizando abort() según las condiciones
-        pass
+        try:
+            resource_id = int(resource_id)
+        except ValueError:
+            abort(400)
 
-    @app.route('/admin', methods=['GET'])
+        if resource_id <= 0:
+            abort(400)
+        if resource_id > 100:
+            abort(404)
+
+        return jsonify({"resource_id": resource_id})
+
+    @app.route("/admin", methods=["GET"])
     def admin():
         """
         Endpoint protegido que requiere una clave de acceso.
@@ -48,11 +58,16 @@ def create_app():
         - Si no se proporciona el parámetro 'key': abort con código 401 (Unauthorized)
         - Si la clave no es 'secret123': abort con código 403 (Forbidden)
         """
-        # Implementa este endpoint utilizando abort() según las condiciones
-        pass
+        key = request.args.get("key")
+        if key is None:
+            abort(401)
+        if key != "secret123":
+            abort(403)
+        return jsonify({"status": "ok"})
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)

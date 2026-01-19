@@ -31,8 +31,9 @@ Ejemplo:
 Tu tarea es implementar esta API en Flask con el manejo adecuado de errores.
 """
 
-from flask import Flask, jsonify, request, abort
 import logging
+
+from flask import Flask, abort, jsonify, request
 
 # Configuración del registro (logging)
 logging.basicConfig(level=logging.INFO)
@@ -42,18 +43,19 @@ logger = logging.getLogger(__name__)
 animals = [
     {"id": 1, "name": "León", "species": "Panthera leo"},
     {"id": 2, "name": "Elefante", "species": "Loxodonta africana"},
-    {"id": 3, "name": "Jirafa", "species": "Giraffa camelopardalis"}
+    {"id": 3, "name": "Jirafa", "species": "Giraffa camelopardalis"},
 ]
 
 # Este contador se usará para asignar IDs únicos
 next_id = 4
+
 
 def create_app():
     """
     Crea y configura la aplicación Flask con manejadores de errores personalizados
     """
     app = Flask(__name__)
-    
+
     # Manejador de errores 400 - Bad Request
     @app.errorhandler(400)
     def bad_request(error):
@@ -61,10 +63,8 @@ def create_app():
         Maneja errores de solicitud incorrecta (400)
         Devuelve un JSON con mensaje de error y código de estado 400
         """
-        # Implementa este manejador de errores
-        # 1. Registra el error usando app.logger.warning() con un mensaje descriptivo
-        # 2. Devuelve un JSON con un mensaje descriptivo y el código de estado 400
-        pass
+        app.logger.warning("Bad Request")
+        return jsonify({"error": "Bad Request"}), 400
 
     # Manejador de errores 404 - Not Found
     @app.errorhandler(404)
@@ -73,10 +73,8 @@ def create_app():
         Maneja errores de recurso no encontrado (404)
         Devuelve un JSON con mensaje de error y código de estado 404
         """
-        # Implementa este manejador de errores
-        # 1. Registra el error usando app.logger.info() con un mensaje descriptivo
-        # 2. Devuelve un JSON con un mensaje descriptivo y el código de estado 404
-        pass
+        app.logger.info("Resource Not Found")
+        return jsonify({"error": "Not Found"}), 404
 
     # Manejador de errores 405 - Method Not Allowed
     @app.errorhandler(405)
@@ -85,10 +83,8 @@ def create_app():
         Maneja errores de método no permitido (405)
         Devuelve un JSON con mensaje de error y código de estado 405
         """
-        # Implementa este manejador de errores
-        # 1. Registra el error usando app.logger.warning() con un mensaje descriptivo
-        # 2. Devuelve un JSON con un mensaje descriptivo y el código de estado 405
-        pass
+        app.logger.warning("Method Not Allowed")
+        return jsonify({"error": "Method Not Allowed"}), 405
 
     # Manejador de errores 500 - Internal Server Error
     @app.errorhandler(500)
@@ -97,67 +93,71 @@ def create_app():
         Maneja errores internos del servidor (500)
         Registra el error en los logs y devuelve un JSON con mensaje de error
         """
-        # Implementa este manejador de errores
-        # 1. Registra el error usando app.logger.error() con los detalles del error
-        # 2. Incluye información adicional como la ruta que causó el error utilizando request.path
-        # 3. Devuelve un JSON con un mensaje descriptivo y el código de estado 500
-        pass
+        app.logger.error(f"Internal Server Error at {request.path}: {error}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
-    @app.route('/animals', methods=['GET'])
+    @app.route("/animals", methods=["GET"])
     def get_animals():
         """
         Devuelve la lista completa de animales
         """
-        # Implementa este endpoint para devolver la lista de animales
-        pass
+        return jsonify(animals), 200
 
-    @app.route('/animals/<int:animal_id>', methods=['GET'])
+    @app.route("/animals/<int:animal_id>", methods=["GET"])
     def get_animal(animal_id):
         """
         Devuelve la información de un animal específico por su ID
         Si el animal no existe, debe activar un error 404
         """
-        # Implementa este endpoint para devolver un animal por su ID
-        # si no existe, usa abort(404) para lanzar un error 404
-        pass
+        for animal in animals:
+            if animal["id"] == animal_id:
+                return jsonify(animal), 200
+        abort(404)
 
-    @app.route('/animals', methods=['POST'])
+    @app.route("/animals", methods=["POST"])
     def add_animal():
         """
         Agrega un nuevo animal
         El cuerpo debe incluir JSON con campos "name" y "species"
         Si falta algún campo, debe activar un error 400
         """
-        # Implementa este endpoint
-        # 1. Verifica que el cuerpo de la solicitud contenga JSON
-        # 2. Verifica que los campos "name" y "species" estén presentes
-        # 3. Si falta algún campo, usa abort(400) para lanzar un error
-        # 4. Si todo está correcto, agrega el nuevo animal a la lista y devuelve una respuesta adecuada (código 201)
-        pass
+        global next_id
+        if not request.is_json:
+            abort(400)
 
-    @app.route('/animals/<int:animal_id>', methods=['DELETE'])
+        data = request.get_json()
+        if "name" not in data or "species" not in data:
+            abort(400)
+
+        new_animal = {
+            "id": next_id,
+            "name": data["name"],
+            "species": data["species"],
+        }
+        animals.append(new_animal)
+        next_id += 1
+        return jsonify(new_animal), 201
+
+    @app.route("/animals/<int:animal_id>", methods=["DELETE"])
     def delete_animal(animal_id):
         """
         Elimina un animal específico por su ID
         Si el animal no existe, debe activar un error 404
         """
-        # Implementa este endpoint
-        # 1. Verifica si el animal existe
-        # 2. Si no existe, usa abort(404) para lanzar un error 404
-        # 3. Si existe, elimínalo de la lista y devuelve una respuesta adecuada
-        pass
+        for animal in animals:
+            if animal["id"] == animal_id:
+                animals.remove(animal)
+                return "", 204
+        abort(404)
 
     # Endpoint adicional que lanza un error 500 para probar el manejador
-    @app.route('/test-error', methods=['GET'])
+    @app.route("/test-error", methods=["GET"])
     def test_error():
-        """
-        Endpoint de prueba que lanza un error 500 intencionalmente
-        """
-        # Lanza una excepción para probar el manejador de error 500
-        pass
+        raise Exception("Test error")
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)

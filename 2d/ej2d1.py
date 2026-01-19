@@ -18,7 +18,8 @@ Esta actividad te enseñará a utilizar el sistema de registro de Flask,
 una habilidad crucial para el desarrollo y depuración de aplicaciones web.
 """
 
-from flask import Flask, jsonify
+from flask import Flask, Response
+
 
 def create_app():
     """
@@ -29,58 +30,48 @@ def create_app():
     # Configuración básica del logger
     # Por defecto, los mensajes se registrarán en la consola
 
-    @app.route('/info', methods=['GET'])
+    @app.route("/info", methods=["GET"])
     def log_info():
         """
         Registra un mensaje de nivel INFO
         """
-        # Implementa este endpoint:
-        # 1. Registra un mensaje de nivel INFO usando app.logger.info()
-        # 2. Devuelve un mensaje en texto plano indicando que se ha registrado el mensaje
-        pass
+        app.logger.info("Mensaje de nivel INFO")
+        return Response("Mensaje INFO registrado", mimetype="text/plain")
 
-    @app.route('/warning', methods=['GET'])
+    @app.route("/warning", methods=["GET"])
     def log_warning():
         """
         Registra un mensaje de nivel WARNING
         """
-        # Implementa este endpoint:
-        # 1. Registra un mensaje de nivel WARNING usando app.logger.warning()
-        # 2. Devuelve un mensaje en texto plano indicando que se ha registrado el mensaje
-        pass
+        app.logger.warning("Mensaje de nivel WARNING")
+        return Response("Mensaje WARNING registrado", mimetype="text/plain")
 
-    @app.route('/error', methods=['GET'])
+    @app.route("/error", methods=["GET"])
     def log_error():
         """
         Registra un mensaje de nivel ERROR
         """
-        # Implementa este endpoint:
-        # 1. Registra un mensaje de nivel ERROR usando app.logger.error()
-        # 2. Devuelve un mensaje en texto plano indicando que se ha registrado el mensaje
-        pass
+        app.logger.error("Mensaje de nivel ERROR")
+        return Response("Mensaje ERROR registrado", mimetype="text/plain")
 
-    @app.route('/critical', methods=['GET'])
+    @app.route("/critical", methods=["GET"])
     def log_critical():
         """
         Registra un mensaje de nivel CRITICAL
         """
-        # Implementa este endpoint:
-        # 1. Registra un mensaje de nivel CRITICAL usando app.logger.critical()
-        # 2. Devuelve un mensaje en texto plano indicando que se ha registrado el mensaje
-        pass
+        app.logger.critical("Mensaje de nivel CRITICAL")
+        return Response("Mensaje CRITICAL registrado", mimetype="text/plain")
 
-    @app.route('/status', methods=['GET'])
+    @app.route("/status", methods=["GET"])
     def status():
         """
         Endpoint adicional que registra diferentes mensajes según el parámetro de consulta 'level'
         Ejemplo: /status?level=warning
         """
-        # Este endpoint es opcional, puedes implementarlo si quieres practicar
-        # con parámetros de consulta y logging condicional
-        pass
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
