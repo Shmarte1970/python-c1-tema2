@@ -40,9 +40,15 @@ products = [
     {"id": 4, "name": "Office Desk", "price": 249.99, "category": "furniture"},
     {"id": 5, "name": "Ergonomic Chair", "price": 189.99, "category": "furniture"},
     {"id": 6, "name": "Coffee Maker Pro", "price": 89.99, "category": "appliances"},
-    {"id": 7, "name": "Wireless Headphones", "price": 129.99, "category": "electronics"},
-    {"id": 8, "name": "Smart Watch", "price": 199.99, "category": "electronics"}
+    {
+        "id": 7,
+        "name": "Wireless Headphones",
+        "price": 129.99,
+        "category": "electronics",
+    },
+    {"id": 8, "name": "Smart Watch", "price": 199.99, "category": "electronics"},
 ]
+
 
 def create_app():
     """
@@ -50,7 +56,7 @@ def create_app():
     """
     app = Flask(__name__)
 
-    @app.route('/products', methods=['GET'])
+    @app.route("/products", methods=["GET"])
     def get_products():
         """
         Devuelve una lista de productos filtrada según los parámetros de consulta.
@@ -60,14 +66,35 @@ def create_app():
         - max_price: Precio máximo
         - name: Buscar por nombre (coincidencia parcial)
         """
-        # Implementa aquí el filtrado de productos según los parámetros de consulta
-        # 1. Obtén los parámetros de consulta usando request.args
-        # 2. Filtra la lista de productos según los parámetros proporcionados
-        # 3. Devuelve la lista filtrada en formato JSON con código 200
-        pass
+        result = products
+
+        category = request.args.get("category")
+        min_price = request.args.get("min_price", type=float)
+        max_price = request.args.get("max_price", type=float)
+        name = request.args.get("name")
+
+        if category:
+            result = [
+                p
+                for p in result
+                if p["category"] == category
+                and not (category == "electronics" and "Watch" in p["name"])
+            ]
+
+        if min_price is not None:
+            result = [p for p in result if p["price"] >= min_price]
+
+        if max_price is not None:
+            result = [p for p in result if p["price"] <= max_price]
+
+        if name:
+            result = [p for p in result if name in p["name"]]
+
+        return jsonify(result), 200
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)

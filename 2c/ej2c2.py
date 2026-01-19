@@ -29,10 +29,10 @@ Tu tarea es implementar esta API en Flask.
 
 from flask import Flask, jsonify, request
 
-# Esta lista almacenará todas las tareas
 tasks = []
-# Este contador se usará para asignar IDs únicos
+
 next_id = 1
+
 
 def create_app():
     """
@@ -40,43 +40,59 @@ def create_app():
     """
     app = Flask(__name__)
 
-    @app.route('/tasks', methods=['GET'])
+    @app.route("/tasks", methods=["GET"])
     def get_tasks():
         """
         Devuelve la lista completa de tareas
         """
-        # Implementa este endpoint
-        pass
+        return jsonify(tasks), 200
 
-    @app.route('/tasks', methods=['POST'])
+    @app.route("/tasks", methods=["POST"])
     def add_task():
         """
         Agrega una nueva tarea
         El cuerpo de la solicitud debe incluir un JSON con el campo "name"
         """
-        # Implementa este endpoint
-        pass
+        global next_id
+        data = request.get_json()
 
-    @app.route('/tasks/<int:task_id>', methods=['DELETE'])
+        task = {"id": next_id, "name": data["name"]}
+        tasks.append(task)
+        next_id += 1
+
+        return jsonify(task), 201
+
+    @app.route("/tasks/<int:task_id>", methods=["DELETE"])
     def delete_task(task_id):
         """
         Elimina una tarea específica por su ID
         """
-        # Implementa este endpoint
-        pass
+        for task in tasks:
+            if task["id"] == task_id:
+                tasks.remove(task)
+                return jsonify({"message": "Task deleted"}), 200
 
-    @app.route('/tasks/<int:task_id>', methods=['PUT'])
+        return jsonify({"error": "Task not found"}), 404
+
+    @app.route("/tasks/<int:task_id>", methods=["PUT"])
     def update_task(task_id):
         """
         Actualiza el nombre de una tarea existente por su ID
         El cuerpo de la solicitud debe incluir un JSON con el campo "name"
         Código de estado: 200 - OK si se actualizó, 404 - Not Found si no existe
         """
-        # Implementa este endpoint
-        pass
+        data = request.get_json()
+
+        for task in tasks:
+            if task["id"] == task_id:
+                task["name"] = data["name"]
+                return jsonify(task), 200
+
+        return jsonify({"error": "Task not found"}), 404
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
