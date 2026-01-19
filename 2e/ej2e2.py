@@ -38,6 +38,7 @@ una habilidad esencial para el desarrollo de APIs y servicios web que manejan di
 from flask import Flask, jsonify, Response, send_file, make_response
 import os
 import io
+import base64
 
 def create_app():
     """
@@ -50,41 +51,39 @@ def create_app():
         """
         Devuelve un texto plano con el tipo MIME `text/plain`
         """
-        # Implementa este endpoint para devolver el contenido solicitado
-        pass
+        return Response("Este es un texto plano", content_type='text/plain')
 
     @app.route('/html', methods=['GET'])
     def get_html():
         """
         Devuelve un fragmento HTML con el tipo MIME `text/html`
         """
-        # Implementa este endpoint para devolver el contenido solicitado
-        pass
+        return Response("<h1>Este es un fragmento HTML</h1>", content_type='text/html')
 
     @app.route('/json', methods=['GET'])
     def get_json():
         """
         Devuelve un objeto JSON con el tipo MIME `application/json`
         """
-        # Implementa este endpoint para devolver el contenido solicitado
-        pass
+        return jsonify({"mensaje": "Este es un objeto JSON"})
 
     @app.route('/xml', methods=['GET'])
     def get_xml():
         """
         Devuelve un documento XML con el tipo MIME `application/xml`
         """
-        # Implementa este endpoint para devolver el contenido solicitado
-        pass
+        return Response("<mensaje>Este es un documento XML</mensaje>", content_type='application/xml')
 
     @app.route('/image', methods=['GET'])
     def get_image():
         """
         Devuelve una imagen con el tipo MIME `image/png`
         """
-        # Implementa este endpoint para devolver el contenido solicitado
-        # Sugerencia: Puedes usar send_file para enviar una imagen
-        pass
+        # Imagen PNG mínima válida (1x1 píxel transparente)
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+        )
+        return send_file(io.BytesIO(png_bytes), mimetype='image/png')
 
     @app.route('/binary', methods=['GET'])
     def get_binary():
@@ -92,9 +91,11 @@ def create_app():
         Devuelve datos binarios genéricos con el tipo MIME `application/octet-stream`
         Para este ejemplo, puedes crear unos bytes aleatorios o un archivo binario simple
         """
-        # Implementa este endpoint para devolver el contenido solicitado
-        # Sugerencia: Puedes usar os.urandom() para generar datos aleatorios
-        pass
+        binary_data = os.urandom(100)
+        response = make_response(binary_data)
+        response.headers['Content-Type'] = 'application/octet-stream'
+        response.headers['Content-Disposition'] = 'attachment; filename=data.bin'
+        return response
 
     return app
 

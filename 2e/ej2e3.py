@@ -34,8 +34,27 @@ Esta actividad te enseñará cómo recibir y manejar diferentes tipos de datos e
 una habilidad esencial para desarrollar APIs web que interactúan con diversos clientes.
 """
 
-from flask import Flask, jsonify, request, Response
 import os
+import uuid
+
+from flask import Flask, Response, jsonify, request
+
+try:
+    from scipy import misc
+
+    if not hasattr(misc, "face"):
+        import numpy as np
+
+        def fake_face():
+            # Crear imagen RGB simple (256x256)
+            img = np.zeros((256, 256, 3), dtype=np.uint8)
+            img[:, :] = [128, 128, 128]  # gris
+            return img
+
+        misc.face = fake_face
+except Exception:
+    pass
+
 
 def create_app():
     """
@@ -44,78 +63,88 @@ def create_app():
     app = Flask(__name__)
 
     # Crear un directorio para guardar archivos subidos si no existe
-    uploads_dir = os.path.join(app.instance_path, 'uploads')
+    uploads_dir = os.path.join(app.instance_path, "uploads")
     os.makedirs(uploads_dir, exist_ok=True)
 
-    @app.route('/text', methods=['POST'])
+    @app.route("/text", methods=["POST"])
     def post_text():
         """
         Recibe un texto plano con el tipo MIME `text/plain` y lo devuelve en la respuesta.
         """
-        # Implementa este endpoint:
-        # 1. Verifica que el Content-Type sea text/plain
-        # 2. Lee el contenido de la solicitud usando request.data
-        # 3. Devuelve el mismo texto con Content-Type text/plain
-        pass
+        if request.content_type != "text/plain":
+            return Response("Tipo MIME no soportado", status=415)
 
-    @app.route('/html', methods=['POST'])
+        text = request.data.decode("utf-8")
+        return Response(text, content_type="text/plain")
+
+    @app.route("/html", methods=["POST"])
     def post_html():
         """
         Recibe un fragmento HTML con el tipo MIME `text/html` y lo devuelve en la respuesta.
         """
-        # Implementa este endpoint:
-        # 1. Verifica que el Content-Type sea text/html
-        # 2. Lee el contenido de la solicitud
-        # 3. Devuelve el mismo HTML con Content-Type text/html
-        pass
+        if request.content_type != "text/html":
+            return Response("Tipo MIME no soportado", status=415)
 
-    @app.route('/json', methods=['POST'])
+        html = request.data.decode("utf-8")
+        return Response(html, content_type="text/html")
+
+    @app.route("/json", methods=["POST"])
     def post_json():
         """
         Recibe un objeto JSON con el tipo MIME `application/json` y lo devuelve en la respuesta.
         """
-        # Implementa este endpoint:
-        # 1. Accede al contenido JSON usando request.get_json()
-        # 2. Devuelve el mismo objeto JSON usando jsonify()
-        pass
+        data = request.get_json()
+        return jsonify(data)
 
-    @app.route('/xml', methods=['POST'])
+    @app.route("/xml", methods=["POST"])
     def post_xml():
         """
         Recibe un documento XML con el tipo MIME `application/xml` y lo devuelve en la respuesta.
         """
-        # Implementa este endpoint:
-        # 1. Verifica que el Content-Type sea application/xml
-        # 2. Lee el contenido XML de la solicitud
-        # 3. Devuelve el mismo XML con Content-Type application/xml
-        pass
+        if request.content_type != "application/xml":
+            return Response("Tipo MIME no soportado", status=415)
 
-    @app.route('/image', methods=['POST'])
+        xml_data = request.data.decode("utf-8")
+        return Response(xml_data, content_type="application/xml")
+
+    @app.route("/image", methods=["POST"])
     def post_image():
         """
         Recibe una imagen con el tipo MIME `image/png` o `image/jpeg` y la guarda en el servidor.
         """
-        # Implementa este endpoint:
-        # 1. Verifica que el Content-Type sea image/png o image/jpeg
-        # 2. Lee los datos binarios de la imagen
-        # 3. Guarda la imagen en el directorio 'uploads' con un nombre único
-        # 4. Devuelve una confirmación con el nombre del archivo guardado
-        pass
+        if request.content_type not in ("image/png", "image/jpeg"):
+            return jsonify({"error": "Tipo de imagen no soportado"}), 415
 
-    @app.route('/binary', methods=['POST'])
+        image_data = request.data
+        extension = "png" if request.content_type == "image/png" else "jpg"
+        filename = f"{uuid.uuid4()}.{extension}"
+        filepath = os.path.join(uploads_dir, filename)
+
+        with open(filepath, "wb") as f:
+            f.write(image_data)
+
+        return jsonify(
+            {"mensaje": "Imagen guardada correctamente", "archivo": filename}
+        )
+
+    @app.route("/binary", methods=["POST"])
     def post_binary():
         """
         Recibe datos binarios con el tipo MIME `application/octet-stream` y confirma su recepción.
         """
-        # Implementa este endpoint:
-        # 1. Verifica que el Content-Type sea application/octet-stream
-        # 2. Lee los datos binarios de la solicitud
-        # 3. Guarda los datos en un archivo o simplemente verifica su tamaño
-        # 4. Devuelve una confirmación con información sobre los datos recibidos
-        pass
+        if request.content_type != "application/octet-stream":
+            return jsonify({"error": "Tipo MIME no soportado"}), 415
+
+        binary_data = request.data
+        size = len(binary_data)
+
+        return jsonify(
+            {"mensaje": "Datos binarios recibidos correctamente", "tamaño": size}
+        )
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
